@@ -4,25 +4,36 @@ package Biblioteca;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.UUID;
 
 public class Socio {
 
     private String nombre;
     private String apellido;
     private int DNI;
-    private int socioID;
+    private String socioID;
     private boolean desactivado;
 
     public Socio() {
     }
 
-    public Socio(int socioID,String nombre, String apellido, int DNI, boolean desactivado) {
+    public Socio(String socioID, String nombre, String apellido, int DNI, boolean desactivado) {
 
         this.nombre = nombre;
         this.apellido = apellido;
         this.DNI = DNI;
-        this.socioID=socioID;
-        this.desactivado=desactivado;
+        this.socioID = socioID;
+        this.desactivado = desactivado;
+    }
+
+    public Socio(String nombre, String apellido, int DNI) {
+        UUID uuid2 = UUID.randomUUID();
+        this.nombre = nombre;
+        this.apellido = apellido;
+        this.DNI = DNI;
+        this.socioID = String.valueOf(uuid2).substring(0, 8);
+        ;
+        this.desactivado = false;
     }
 
     public int getDNI() {
@@ -41,11 +52,11 @@ public class Socio {
         this.desactivado = desactivado;
     }
 
-    public int getSocioID() {
+    public String getSocioID() {
         return socioID;
     }
 
-    public void setSocioID(int socioID) {
+    public void setSocioID(String socioID) {
         this.socioID = socioID;
     }
 
@@ -79,22 +90,23 @@ public class Socio {
     }
 
     public String toString(String ceparador) {
-        return socioID+ceparador+nombre + ceparador + apellido + ceparador + DNI+ceparador+desactivado;
+        return socioID + ceparador + nombre + ceparador + apellido + ceparador + DNI + ceparador + desactivado;
     }
 
     @Override
     public boolean equals(Object obj) {
         Socio s = (Socio) obj;
-        return nombre.equals(s.nombre) & apellido.equals(s.apellido) & DNI==s.DNI;
+        return nombre.equals(s.nombre) & apellido.equals(s.apellido) & DNI == s.DNI;
     }
-    public void agregarSocio(){
+
+    public void agregarSocio() {
         try {
             PreparedStatement pSInsert = Conexion.getInstance().prepareStatement("INSERT INTO socios VALUES(?,?,?,?,?)");
-            pSInsert.setString(1, null);
+            pSInsert.setString(1, socioID);
             pSInsert.setString(2, nombre);
             pSInsert.setString(3, apellido);
             pSInsert.setInt(4, DNI);
-            pSInsert.setBoolean(5,desactivado);
+            pSInsert.setBoolean(5, desactivado);
             pSInsert.executeUpdate();
 
 
@@ -107,10 +119,11 @@ public class Socio {
 
         }
     }
-    public void darDeBaja(){
+
+    public void darDeBaja() {
         try {
-            PreparedStatement psUpdate=Conexion.getInstance().prepareStatement(
-                    "UPDATE socios SET desactivado=1 WHERE socioID="+socioID);
+            PreparedStatement psUpdate = Conexion.getInstance().prepareStatement(
+                    "UPDATE socios SET desactivado='" + 1 + "'WHERE socioID='" + socioID + "'");
             psUpdate.executeUpdate();
             psUpdate.close();
         } catch (SQLException e) {
@@ -119,12 +132,13 @@ public class Socio {
 
 
     }
-    public boolean validacion(){
-        ArrayList<Socio>SociosC=Modelo.cargarSocios();
-        boolean retorno=false;
-        for (int i=0;i<SociosC.size();i++){
-            if (equals(SociosC.get(i))){
-                retorno=true;
+
+    public boolean validacion() {
+        ArrayList<Socio> SociosC = Modelo.cargarSocios();
+        boolean retorno = false;
+        for (int i = 0; i < SociosC.size(); i++) {
+            if (equals(SociosC.get(i))) {
+                retorno = true;
             }
         }
         return retorno;

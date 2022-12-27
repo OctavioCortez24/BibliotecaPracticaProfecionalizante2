@@ -20,9 +20,8 @@ public class Controlador {
                 String nombre = atributosSocio.get(0);
                 String apellido = atributosSocio.get(1);
                 int dNI = Integer.parseInt(atributosSocio.get(2));
-                int idSocio = Modelo.cargarSocios().size() + 1;
 
-                Socio socio1 = new Socio(idSocio, nombre, apellido, dNI, false);//Instancio un socio
+                Socio socio1 = new Socio(nombre, apellido, dNI);//Instancio un socio
                 //Compruebo si el socio se encuentra en la BD
                 if (socio1.validacion()) {
                     Vista.validacionDeDatos("El Socio ya esta añadido");
@@ -37,12 +36,11 @@ public class Controlador {
                 //Añadir un libro a la biblioteca
                 ArrayList<String> atributosLi = Vista.crearLibro();//Recibo los atributos que el usuario indico
 
-                int idLIbro = Modelo.cargarLibros().size() + 1;
                 String titulo = atributosLi.get(0);
                 String autorNombre = atributosLi.get(1);
                 String categoria = atributosLi.get(2);
 
-                Libro libro1 = new Libro(idLIbro, titulo, autorNombre, categoria, true, false);//Instancio un libro
+                Libro libro1 = new Libro(titulo, autorNombre, categoria);//Instancio un libro
 
                 //Compruebo si el libro se encuentra en la BD
                 if (libro1.validacion()) {
@@ -64,18 +62,22 @@ public class Controlador {
 
             } else if (eleccion == 5) {
 
-                System.out.println("Dar de baja un libro");
+
                 int numeroLibro = Vista.elegirLibrosNoDesactivados(Modelo.cargarLibros());
-                Libro l = Modelo.cargarLibros().get(numeroLibro);//Cargo el libro desde la BD
-                l.darDeBaja();//Doy de baja el libro, es para BD
+                if(numeroLibro!=-1){
+                    Libro l = Modelo.cargarLibros().get(numeroLibro);//Cargo el libro desde la BD
+                    l.darDeBaja();//Doy de baja el libro, es para BD
+                }
 
             } else if (eleccion == 6) {
 
                 //Dar de baja un socio
                 int numeroSocio = Vista.eleccionSocioNoDesactivados(Modelo.cargarSocios());
-                Socio s = Modelo.cargarSocios().get(numeroSocio);//Cargo el socio desde la BD
 
-                s.darDeBaja();//utilizo el metodo darDeBaja, es para BD
+                if(numeroSocio!=-1){
+                    Socio s = Modelo.cargarSocios().get(numeroSocio);//Cargo el socio desde la BD
+                    s.darDeBaja();//utilizo el metodo darDeBaja, es para BD
+                }
 
             } else if (eleccion == 7) {
                 //Registrar un pedido
@@ -83,17 +85,18 @@ public class Controlador {
                 ArrayList<Socio> socios = Modelo.cargarSocios();//Cargo los socios de la BD
 
                 //Biblioteca.Libro
-                int idLibro = Vista.eleccionLibrosDisponibles(libros);
-                //-----
-                //Socio
-                int idSocio = Vista.eleccionSocio(socios);
-                //------
-                LocalDate fechaPrestamo = LocalDate.now();//Fecha en la cual se ejecuto esta opcion
-                LocalDate fechaDevolver = LocalDate.now().plusDays(15);//Fecha en la cual se ejecuto esta opcion mas 15 dias
+                String idLibro = Vista.eleccionLibrosDisponibles(libros);
 
-                Pedido p = new Pedido(fechaPrestamo, fechaDevolver, idLibro, idSocio, null);//Instancio un pedido
-                p.anadirPedido();//Añado el pedido en la BD
-
+               if (!idLibro.equals("exit")){
+                   //-----
+                   //Socio
+                   String idSocio = Vista.eleccionSocio(socios);
+                   //------
+                   if(!idSocio.equals("exit")){
+                       Pedido p = new Pedido(idLibro, idSocio);//Instancio un pedido
+                       p.anadirPedido();//Añado el pedido en la BD
+                   }
+               }
             } else if (eleccion == 8) {
                 //Mostrar Pedidos
 
@@ -104,28 +107,18 @@ public class Controlador {
 
             } else if (eleccion == 9) {
                 //Devolver Libros
-                boolean comprobacion=false;
 
                 //Cargo los pedidos y los libros
                 ArrayList<Pedido> pedidos = Modelo.cargarPedidos();
                 ArrayList<Libro> libros = Modelo.cargarLibros();
                 //------------------------------------
-                //Compruebo si existe un un libro que esta pedido
-                for (int i=0;i< libros.size();i++){
-                    if (!libros.get(i).isDisponibilidad()){
-                        comprobacion=true;
-                    }
-                }
+                //Compruebo si existe un un libro que esta pedido Terminar <---------------------
 
-                if (comprobacion){
-                    int numeroPedido = Vista.eleccionPedidoParaDevolver(pedidos, libros);
-
+                int numeroPedido = Vista.eleccionPedidoParaDevolver(pedidos, libros);
+                if (numeroPedido!=-1) {
                     Pedido p = Modelo.cargarPedidos().get(numeroPedido);
                     p.devolverLibro();
-                }else{
-                    Vista.validacionDeDatos("----> No hay libros pedidos <----");
                 }
-
             }
 
         } while (eleccion != 0);

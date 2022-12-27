@@ -3,13 +3,14 @@ package Biblioteca;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.UUID;
 
 public class Libro {
     private String tituloDeLib;
     private boolean disponibilidad;
     private String nombreDelAutor;
     private String categoria;
-    private int libroID;
+    private String libroID;
     private boolean desactivado;
 
 
@@ -17,13 +18,22 @@ public class Libro {
 
     }
 
-    public Libro(int idLibro, String nombre, String nombreDelAutor, String categoria, boolean disponibilidad, boolean desactivado) {
+    public Libro(String idLibro, String nombre, String nombreDelAutor, String categoria, boolean disponibilidad, boolean desactivado) {
         this.libroID = idLibro;
         this.tituloDeLib = nombre;
         this.nombreDelAutor = nombreDelAutor;
         this.categoria = categoria;
         this.disponibilidad = disponibilidad;
         this.desactivado = desactivado;
+    }
+    public Libro(String nombre, String nombreDelAutor, String categoria) {
+        UUID uuid2 = UUID.randomUUID();
+        this.libroID = String.valueOf(uuid2).substring(0, 8);
+        this.tituloDeLib = nombre;
+        this.nombreDelAutor = nombreDelAutor;
+        this.categoria = categoria;
+        this.disponibilidad = true;
+        this.desactivado = false;
     }
 
     public String getTituloDeLib() {
@@ -58,11 +68,11 @@ public class Libro {
         this.categoria = categoria;
     }
 
-    public int getLibroID() {
+    public String getLibroID() {
         return libroID;
     }
 
-    public void setLibroID(int libroID) {
+    public void setLibroID(String libroID) {
         this.libroID = libroID;
     }
 
@@ -100,7 +110,7 @@ public class Libro {
     public void añadirLibro() {
         try {
             PreparedStatement pSInsert = Conexion.getInstance().prepareStatement("INSERT INTO libros VALUES(?,?,?,?,?,?)");
-            pSInsert.setString(1, null);
+            pSInsert.setString(1, libroID);
             pSInsert.setString(2, tituloDeLib);
             pSInsert.setString(3, nombreDelAutor);
             pSInsert.setString(4, categoria);
@@ -111,7 +121,8 @@ public class Libro {
             pSInsert.close();
 
         } catch (SQLException e) {
-            Modelo.anadirLibro(this);
+           Modelo.anadirLibro(this);
+
         }
     }
 
@@ -119,7 +130,7 @@ public class Libro {
 
         try {
             PreparedStatement psUdate = Conexion.getInstance().prepareStatement(
-                    "  UPDATE libros SET isDesactivado='" + 1 + "'WHERE libroID=" + libroID);
+                    "  UPDATE libros SET isDesactivado='" + 1 + "'WHERE libroID='" + libroID+"'");
             psUdate.executeUpdate();
 
             psUdate.close();

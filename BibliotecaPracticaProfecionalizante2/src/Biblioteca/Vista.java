@@ -18,7 +18,7 @@ public class Vista {
         System.out.println("[2]--> Añadir un libro");
         System.out.println("[3]--> Ver socios");
         System.out.println("[4]--> Ver libros");
-        System.out.println("[5]--> Dar de baja un Biblioteca.Libro");
+        System.out.println("[5]--> Dar de baja un Libro");
         System.out.println("[6]--> Dar de baja un Socio");
         System.out.println("[7]--> Pedir un libro");
         System.out.println("[8]--> Mostrar Pedidos");
@@ -44,7 +44,7 @@ public class Vista {
         ArrayList<String> array = new ArrayList<>();
         Scanner Leer = new Scanner(System.in);
 
-        System.out.print("Ingrese el nombre del libro: ");
+        System.out.print("Ingrese el titulo del libro: ");
         String nombLib = Leer.nextLine();
         array.add(nombLib);
 
@@ -65,7 +65,7 @@ public class Vista {
 
         Scanner Leer = new Scanner(System.in);
 
-        System.out.println("Igrese su nombre");
+        System.out.println("Igrese su nombre:");
         String nombre = Leer.nextLine();
         atributosS.add(nombre);
 
@@ -83,36 +83,32 @@ public class Vista {
 
     }
 
-    public static int eleccionSocio(ArrayList<Socio> Socios) {
+    public static String eleccionSocio(ArrayList<Socio> socios) {
+        ArrayList<Integer>numeroCorrectos=new ArrayList<>();
         int numerSocio = 0;
         Scanner leerNumer = new Scanner(System.in);
         System.out.println("Seleccione el numero del socio:");
-        for (int i = 0; i < Socios.size(); i++) {
-            System.out.println("[" + Socios.get(i).getSocioID() + "]--> " + Socios.get(i));
+        for (int i = 0; i < socios.size(); i++) {
+            if (!socios.get(i).isDesactivado()) {
+                System.out.println("[" + i + "]--> " + socios.get(i));
+                numeroCorrectos.add(i);
+            }
         }
         boolean bandera = false;
-        do {
-            bandera = true;
-            try {
-                numerSocio = leerNumer.nextInt();
-                if (numerSocio == 0) {
-                    bandera = false;
-                    System.out.println("No puede ingresar el numero 0, vuelva a intentarlo: ");
-                }
-            } catch (InputMismatchException e) {
-                System.out.println("No debes ingresar letras o simbolos, vuelve a intentarlo:");
-                bandera = false;
-                leerNumer.nextLine();
-            }
-        } while (!bandera);
+        numerSocio=sistemaParaElegir(numeroCorrectos);
 
-        return numerSocio;
+        if (numerSocio!=-1){
+            return socios.get(numerSocio).getSocioID();
+        }else{
+            return "exit";
+        }
     }
 
     public static void mostrarLosSocios(ArrayList<Socio> socios) {
         System.out.println("o---o---o---o---o---o---o---o---o---o---o");
         for (int i = 0; i < socios.size(); i++) {
-            System.out.println(socios.get(i));
+            String estado=socios.get(i).isDesactivado()?"Desactivado":"No desactivado";
+            System.out.println(socios.get(i)+" "+estado);
         }
         System.out.println("o---o---o---o---o---o---o---o---o---o---o");
     }
@@ -139,177 +135,112 @@ public class Vista {
         System.out.println(resultado);
     }
 
-    public static int eleccionLibrosDisponibles(ArrayList<Libro> Libros) {
+    public static String eleccionLibrosDisponibles(ArrayList<Libro> Libros) {
         ArrayList<Integer> numerosCorrectos = new ArrayList<>();// Este array sirve para coprobar si el usuario elijio correctamente
         //El array numerosCorrectos son los numeros que deberia elejir el usuario
-        boolean bandera = false;
-        Scanner leerNumer = new Scanner(System.in);
-        System.out.println("Seleccione el numero del Biblioteca.Libro:");
+        System.out.println("Seleccione el numero del Libro:");
         for (int i = 0; i < Libros.size(); i++) {
             if (Libros.get(i).isDisponibilidad() & !Libros.get(i).isDesactivado()) {
-                System.out.println("[" + Libros.get(i).getLibroID() + "]--> " + Libros.get(i).getTituloDeLib());
-                numerosCorrectos.add(Libros.get(i).getLibroID());//Añado los numeros que el usuario tiene para elejir
+                System.out.println("[" + i + "]--> " + Libros.get(i).getTituloDeLib());
+                numerosCorrectos.add(i);//Añado los numeros que el usuario tiene para elejir
             }
         }
         int numerLibro = 0;
-        boolean banderaNumeroCorrecto=false;
-        do {
-            bandera = true;
-            try {
-                numerLibro = leerNumer.nextInt();
-               /* numerosCorrectos.stream().reduce((acumulador, numero)->{
+        numerLibro = sistemaParaElegir(numerosCorrectos);
 
-                    return acumulador+numero;
-                });*/
-                //Bucle para comprobar si el numero que elijio es correcto
-                for (int i = 0; i < numerosCorrectos.size(); i++) {
-                    System.out.println(numerosCorrectos.get(i));
-                    if (numerLibro == numerosCorrectos.get(i)) {
-                        //Si esta condicion es verdadera significa que el usuario ingreso uno de los numeros
-                        // que estan disponibles
-                        banderaNumeroCorrecto =  true;
-                        break;
-                    }
-                }
-                if (!banderaNumeroCorrecto){
-                    bandera=false;
-                    System.out.printf("Numero no encontrado, vuelva a intentarlo:");
-                }
-            } catch (InputMismatchException e) {
-                System.out.println("No debes ingresar letras o simbolos, vuelve a intentarlo:");
-                bandera = false;
-                leerNumer.nextLine();
-            }
-        } while (!bandera);
-        return numerLibro;
+        if (numerLibro!=-1) {
+            return Libros.get(numerLibro).getLibroID();
+        }else {
+            return "exit";
+        }
     }
 
 
-    public static int eleccionPedidoParaDevolver(ArrayList<Pedido> pedidos, ArrayList<Libro>libros) {
-        boolean bandera = false;
-        Scanner leerNumer = new Scanner(System.in);
+    public static int eleccionPedidoParaDevolver(ArrayList<Pedido> pedidos, ArrayList<Libro> libros) {
         ArrayList<Integer> numerosCorrectos = new ArrayList<>();// Este array sirve para coprobar si el usuario elijio correctamente
         //El array numerosCorrectos son los numeros que deberia elejir el usuario
-        System.out.println("Seleccione el numero del Biblioteca.Libro:");
+        System.out.println("Seleccione el numero del Libro:");
         for (int i = 0; i < pedidos.size(); i++) {
-            if (pedidos.get(i).getFecha_ReintegroLibro()==null) {
-                Libro l=libros.get(pedidos.get(i).getLibroID());//Obtengo el libro que se pidio mediante la idLibro que tiene asignado el Biblioteca.Pedido i
-                System.out.println("[" + i + "]--> " + l.getTituloDeLib());//Muestro el titulo del libro
+            if (pedidos.get(i).getFecha_ReintegroLibro() == null) {
+                String libroID=pedidos.get(i).getLibroID();
+
+                Optional<Libro> l = libros.stream().filter(libro ->libro.getLibroID().equals(libroID)).findFirst();
+
+                //Obtengo el libro que se pidio mediante la idLibro que tiene asignado el Biblioteca.Pedido i
+                System.out.println("[" + i + "]--> " + l.get().getTituloDeLib());//Muestro el titulo del libro
                 numerosCorrectos.add(i);
             }
         }
         int numerPedido = 0;
-        boolean banderaNumeroCorrecto=false;
-        do {
-            bandera = true;
-            try {
-                numerPedido = leerNumer.nextInt();
-                //Bucle para comprobar si el numero que elijio es correcto
-                for (int i = 0; i < numerosCorrectos.size(); i++) {
-                    if (numerPedido == numerosCorrectos.get(i)) {
-                        //Si esta condicion es verdadera significa que el usuario ingreso uno de los numeros
-                        // que estan disponibles
-                        banderaNumeroCorrecto =  true;
-                        break;
-                    }
-                }
-                if (!banderaNumeroCorrecto){
-                    bandera=false;
-                    System.out.printf("Numero no encontrado, vuelva a intentarlo:");
-                }
-            } catch (InputMismatchException e) {
-                System.out.println("No debes ingresar letras o simbolos, vuelve a intentarlo:");
-                bandera = false;
-                leerNumer.nextLine();
-            }
-
-        } while (!bandera);
+        numerPedido=sistemaParaElegir(numerosCorrectos);
         return numerPedido;
     }
 
     public static int eleccionSocioNoDesactivados(ArrayList<Socio> Socios) {
-        ArrayList<Integer> numerosCorrectos=new ArrayList<>();
-        int numerSocio = 0;
-        Scanner leerNumer = new Scanner(System.in);
+        ArrayList<Integer> numerosCorrectos = new ArrayList<>();
         System.out.println("Seleccione el numero del socio:");
         for (int i = 0; i < Socios.size(); i++) {
-            if (Socios.get(i).isDesactivado()){
-                System.out.println("[" + Socios.get(i).getSocioID() + "]--> " + Socios.get(i));
-                numerosCorrectos.add(Socios.get(i).getSocioID());
+            if (!Socios.get(i).isDesactivado()) {
+                System.out.println("[" + i + "]--> " + Socios.get(i));
+                numerosCorrectos.add(i);
             }
         }
+        int numerSocio = 0;
+        numerSocio=sistemaParaElegir(numerosCorrectos);
+        return numerSocio;
+    }
+
+    public static int elegirLibrosNoDesactivados(ArrayList<Libro> libros) {
+        System.out.println("Dar de baja un libro");
+        ArrayList<Integer> numerosCorrectos = new ArrayList<>();// Este array sirve para coprobar si el usuario elijio correctamente
+        //El array numerosCorrectos son los numeros que deberia elegir el usuario
+
+
+        for (int i = 0; i < libros.size(); i++) {
+            if (!libros.get(i).isDesactivado()) {
+                System.out.println("[" + i + "]--> " + libros.get(i).getTituloDeLib());
+                numerosCorrectos.add(i);//Añado el numero del libro que si se puede elejir
+            }
+        }
+        int elecion = 0;
+        elecion=sistemaParaElegir(numerosCorrectos);
+
+        return elecion;
+    }
+
+
+    public static int sistemaParaElegir(ArrayList<Integer> numerosCorrectos){
+        numerosCorrectos.add(-1);
+        Scanner leerNumer = new Scanner(System.in);
+        int numeroElegido = 0;
         boolean bandera = false;
-        boolean banderaNumeroCorrecto=false;
+        boolean banderaNumeroCorrecto = false;
+        System.out.println("Ingrese el numero, si desea salir [-1]:");
         do {
             bandera = true;
             try {
-
-                numerSocio = leerNumer.nextInt();
+                numeroElegido = leerNumer.nextInt();
                 //Bucle para comprobar si el numero que elijio es correcto
                 for (int i = 0; i < numerosCorrectos.size(); i++) {
-                    if (numerSocio == numerosCorrectos.get(i)) {
+                    if (numeroElegido == numerosCorrectos.get(i)) {
                         //Si esta condicion es verdadera significa que el usuario ingreso uno de los numeros
                         // que estan disponibles
-                        banderaNumeroCorrecto =  true;
+                        banderaNumeroCorrecto = true;
                         break;
                     }
                 }
-                if (!banderaNumeroCorrecto){
-                    bandera=false;
+                if (!banderaNumeroCorrecto) {
+                    bandera = false;
                     System.out.printf("Numero no encontrado, vuelva a intentarlo:");
                 }
-                numerSocio = numerSocio - 1;
             } catch (InputMismatchException e) {
                 System.out.println("No debes ingresar letras o simbolos, vuelve a intentarlo:");
                 bandera = false;
                 leerNumer.nextLine();
             }
+
         } while (!bandera);
-
-
-        return numerSocio;
-    }
-
-    public static int elegirLibrosNoDesactivados(ArrayList<Libro> libros) {
-        ArrayList<Integer> numerosCorrectos = new ArrayList<>();// Este array sirve para coprobar si el usuario elijio correctamente
-        //El array numerosCorrectos son los numeros que deberia elejir el usuario
-        Scanner LeerNumer = new Scanner(System.in);
-        int elecion = 0;
-        for (int i = 0; i < libros.size(); i++) {
-            if (!libros.get(i).isDesactivado()) {
-                System.out.println("[" + libros.get(i).getLibroID() + "]--> " + libros.get(i).getTituloDeLib());
-                numerosCorrectos.add(libros.get(i).getLibroID());//Añado el numero del libro que si se puede elejir
-            }
-        }
-        boolean bandera = false;
-        boolean banderaNumeroCorrecto=false;
-        do {
-            bandera = true;
-            try {
-                elecion = LeerNumer.nextInt();
-                //Bucle para comprobar si el numero que elijio es correcto
-                for (int i = 0; i < numerosCorrectos.size(); i++) {
-                    if (elecion == numerosCorrectos.get(i)) {
-                        //Si esta condicion es verdadera significa que el usuario ingreso uno de los numeros
-                        // que estan disponibles
-                        banderaNumeroCorrecto =  true;
-                        break;
-                    }
-                }
-                if (!banderaNumeroCorrecto){
-                    bandera=false;
-                    System.out.printf("Numero no encontrado, vuelva a intentarlo:");
-                }
-                elecion = elecion - 1;
-            } catch (InputMismatchException e) {
-                System.out.println("No debes ingresar letras o simbolos, vuelve a intentarlo:");
-                bandera = false;
-                LeerNumer.nextLine();
-            }
-        } while (!bandera);
-
-
-        return elecion;
+        return numeroElegido;
     }
 
 
